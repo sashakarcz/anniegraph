@@ -1,0 +1,4 @@
+Time,Dust_Temp,delta T,Ice_Temp,Ice_Temp_sigup,Ice_Temp_sigdown,Dust_Temp_sigup,Dust_Temp_sigdown
+1.0,187,-0.7,250,10,20,24,33
+2.0,166,-0.5,260,20,30,16,23
+3.0,173,0.3,255,10,20,52,180
