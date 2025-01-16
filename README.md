@@ -166,7 +166,8 @@ annigraph --import-config plot.yaml --file astronomy_data.csv
 ```
 
 ### Generated Graph
-!graph.png
+![plot](./graph.png)
+
 
 ### Interactive Plotting
 
@@ -189,4 +190,4 @@ pnnigraph --file astronomy_data.csv\
 --output-file graph.html
 ```
 #### Generated Plot
-!interactive.png
+![interactive](./interactive.png)
