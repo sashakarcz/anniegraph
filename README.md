@@ -127,6 +127,7 @@ anniegraph --file astronomy_data.csv \
 --output-file graph.png \
 --output-format png \
 --export-config plot.yaml
+```
 
 ### YAML Configuration
 Create a YAML configuration file (e.g., plot.yaml) with the desired settings:
