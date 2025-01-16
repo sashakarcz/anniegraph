@@ -32,39 +32,39 @@ Clone the repository:
 
 
 ```bash
-git clone https://github.com/sashakarcz/annigraph.git
+git clone https://github.com/sashakarcz/anniegraph.git
 ```
 
 ```bash
-cd annigraph
+cd anniegraph
 ```
 
 Create the necessary directories and symlinks:
 
 ```bash
-sudo mkdir -p /usr/local/lib/annigraph
-sudo ln -s $(pwd)/annigraph.py /usr/local/lib/annigraph/annigraph.py
-sudo tee /usr/local/bin/annigraph <<EOF
+sudo mkdir -p /usr/local/lib/anniegraph
+sudo ln -s $(pwd)/anniegraph.py /usr/local/lib/anniegraph/anniegraph.py
+sudo tee /usr/local/bin/anniegraph <<EOF
 #!/usr/bin/env bash
-python /usr/local/lib/annigraph/annigraph.py "\$@"
+python /usr/local/lib/anniegraph/anniegraph.py "\$@"
 EOF
-sudo chmod +x /usr/local/bin/annigraph
+sudo chmod +x /usr/local/bin/anniegraph
 ```
 
 Verify Installation:
 
 ```bash
-which annigraph
+which anniegraph
 ```
 
-You should see `/usr/local/bin/annigraph` in the output.
+You should see `/usr/local/bin/anniegraph` in the output.
 
 ## Usage
 
-Run `annigraph` with the appropriate arguments:
+Run `anniegraph` with the appropriate arguments:
 
 ```bash
-annigraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_columns> [options]
+anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_columns> [options]
 ```
 
 ### Command-Line Arguments
@@ -108,7 +108,7 @@ Time,Dust_Temp,delta T,Ice_Temp,Ice_Temp_sigup,Ice_Temp_sigdown,Dust_Temp_sigup,
 ### CLI Configuration:
 
 ```bash
-annigraph --file astronomy_data.csv \
+anniegraph --file astronomy_data.csv \
 --delimiter "," \
 --x-axis Time \
 --y-axes Dust_Temp,Ice_Temp \
@@ -162,7 +162,7 @@ y_axis_title: Observed Temperature
 ### Run the script with the YAML configuration:
 
 ```bash
-annigraph --import-config plot.yaml --file astronomy_data.csv
+anniegraph --import-config plot.yaml --file astronomy_data.csv
 ```
 
 ### Generated Graph
@@ -172,7 +172,7 @@ annigraph --import-config plot.yaml --file astronomy_data.csv
 ### Interactive Plotting
 
 ```bash
-pnnigraph --file astronomy_data.csv\
+anniegraph --file astronomy_data.csv\
 --delimiter ","\
 --x-axis Time\
 --y-axes Dust_Temp,Ice_Temp\
