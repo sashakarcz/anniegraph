@@ -374,9 +374,9 @@ class Graph:
         webbrowser.open(self.config.output_file)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Astronomy Data Graph Generator")
+    parser = argparse.ArgumentParser(description="Little Orphan Annie's AstroGraph")
     parser.add_argument("--file", required=False, help="Path to the input file")
-    parser.add_argument("--delimiter", default=",", help="Delimiter used in the file (default: ',')")
+    parser.add_argument("--delimiter", default="\t", help="Delimiter used in the file (default: '\t')")
     parser.add_argument("--x-axis", required=False, help="Column to use for the x-axis")
     parser.add_argument("--y-axes", required=False, help="Comma-separated list of columns to use for the y-axis")
     parser.add_argument("--x-min", type=float, help="Minimum value for the x-axis")
