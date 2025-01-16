@@ -69,6 +69,7 @@ anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_
 
 ### Command-Line Arguments
 
+```
 --file: Path to the input file (required if not using --import-config).
 --delimiter: Delimiter used in the file (default: ,).
 --x-axis: Column to use for the x-axis.
@@ -93,6 +94,7 @@ anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_
 --export-config: Path to save the configuration as a YAML file.
 --x-axis-title: Title for the x-axis.
 --y-axis-title: Title for the y-axis.
+```
 
 ## Example
 
