@@ -1,6 +1,6 @@
 # Little Orphan Annie's AstroGraph (anniegraph)
 
-! anniegraph.webp
+![Annie](./anniegraph.webp)
 
 Anniegraph is a tool for generating graphs from astronomy data using either static (matplotlib) or interactive (Plotly) visualizations. The configuration can be provided via command-line arguments or a YAML configuration file.
 
