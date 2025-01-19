@@ -73,7 +73,7 @@ anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_
 --file: Path to the input file (required if not using --import-config).
 --delimiter: Delimiter used in the file (default: ,).
 --x-axis: Column to use for the x-axis.
---y-axes: Comma-separated list of columns to use for the y-axis.
+--y-axis: Comma-separated list of columns to use for the y-axis.
 --x-min: Minimum value for the x-axis.
 --x-max: Maximum value for the x-axis.
 --y-min: Minimum value for the y-axis.

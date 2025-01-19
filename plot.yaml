@@ -1,9 +1,9 @@
 colors:
-- blue
-- green
+  - blue
+  - green
 column_names:
-- Dust Temperature=Dust_Temp
-- Ice Temperature=Ice_Temp
+  - "Dust Temperature=Dust_Temp"
+  - "Ice Temperature=Ice_Temp"
 delimiter: ','
 dpi: 300
 font_size: 12
@@ -12,8 +12,8 @@ legend: true
 output_file: graph.html
 output_format: png
 shapes:
-- o
-- s
+  - o
+  - s
 style: petroff10
 use_uncertainties: true
 x_axis: Time
@@ -22,8 +22,8 @@ x_max: 4.0
 x_min: 0.0
 x_ticks: null
 y_axes:
-- Dust_Temp
-- Ice_Temp
+  - Dust_Temp
+  - Ice_Temp
 y_axis_title: Observed Temperature
 y_max: null
 y_min: null
