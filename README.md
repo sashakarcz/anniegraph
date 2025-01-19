@@ -64,7 +64,7 @@ You should see `/usr/local/bin/anniegraph` in the output.
 Run `anniegraph` with the appropriate arguments:
 
 ```bash
-anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axes <y_axis_columns> [options]
+anniegraph --file <path_to_data_file> --x-axis <x_axis_column> --y-axis <y_axis_columns> [options]
 ```
 
 ### Command-Line Arguments
@@ -113,7 +113,7 @@ Time,Dust_Temp,delta T,Ice_Temp,Ice_Temp_sigup,Ice_Temp_sigdown,Dust_Temp_sigup,
 anniegraph --file astronomy_data.csv \
 --delimiter "," \
 --x-axis Time \
---y-axes Dust_Temp,Ice_Temp \
+--y-axis Dust_Temp,Ice_Temp \
 --x-min 0 \
 --x-max 4 \
 --colors blue,green \
@@ -156,7 +156,7 @@ x_axis_title: Time
 x_max: 4
 x_min: 0.0
 x_ticks: 6
-y_axes:
+y_axis:
 - Dust_Temp
 - Ice_Temp
 y_axis_title: Observed Temperature
@@ -178,7 +178,7 @@ anniegraph --import-config plot.yaml --file astronomy_data.csv
 anniegraph --file astronomy_data.csv\
 --delimiter ","\
 --x-axis Time\
---y-axes Dust_Temp,Ice_Temp\
+--y-axis Dust_Temp,Ice_Temp\
 --x-min 0\
 --x-max 4\
 --colors blue,green\
