@@ -1,16 +1,27 @@
 colors:
 - green
+- blue
+- red
+- yellow
 column_names: []
+comet_ids:
+- WH
+- SW2
+- SW3
+- GZ
 delimiter: "\t"
 dpi: 300
 font_size: 12
 interactive: false
-legend: false
+legend: true
 output_file: graph.png
 output_format: png
 shapes:
 - o
-style: petroff10
+- s
+- <
+- '>'
+style: classic
 use_uncertainties: true
 x_axis: log r
 x_axis_title: log r
@@ -22,3 +33,4 @@ y_axes:
 y_axis_title: OH log Q
 y_max: null
 y_min: null
+y_ticks: null

@@ -1,6 +1,8 @@
 import argparse
+from datetime import datetime, timedelta
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 import plotly.graph_objects as go
 import yaml
 import webbrowser
@@ -9,33 +11,55 @@ class DataProcessor:
     """
     Handles loading and processing data from a CSV or tab-delimited file.
     """
-    def __init__(self, file_path, delimiter):
+    def __init__(self, file_path, delimiter, comet_ids=None):
         """
-        Initialize the DataProcessor with a file path and delimiter.
+        Initialize the DataProcessor with a file path, delimiter, and optional comet IDs.
 
         Args:
             file_path (str): Path to the input file.
             delimiter (str): Delimiter used in the file (e.g., "," for CSV, "\t" for tab-delimited).
+            comet_ids (list): List of comet IDs to filter the data.
         """
         self.file_path = file_path
         self.delimiter = delimiter
+        self.comet_ids = comet_ids
         self.data = self.load_data()
 
     def load_data(self):
-        """
-        Load the data file into a pandas DataFrame.
-
-        Returns:
-            pd.DataFrame: Data from the file.
-
-        Raises:
-            ValueError: If there is an issue loading the file.
-        """
         try:
-            data = pd.read_csv(self.file_path, delimiter=self.delimiter)
+            data = pd.read_csv(self.file_path, delimiter=self.delimiter, engine='python')
+        
+            # Parse dates if they are in a specific column
+            if 'dec. Date' in data.columns:
+                data['dec. Date'] = data['dec. Date'].apply(self.parse_custom_date)
+        
+            # Convert all non-date columns to numeric, setting errors to NaN
+            numeric_cols = [col for col in data.columns if col not in ['dec. Date', 'Comet ID']]
+            data[numeric_cols] = data[numeric_cols].apply(pd.to_numeric, errors='coerce')
+        
+            # Replace NaN with 0 or interpolate missing values
+            data[numeric_cols] = data[numeric_cols].fillna(0)
+
+            # Debugging: Print the unique values in the "Comet ID" column
+            if 'Comet ID' in data.columns:
+                print("Unique Comet IDs in data:", data['Comet ID'].unique())
+            
+            if self.comet_ids:
+                print("Unique Comet IDs:", data['Comet ID'].unique())
+                print("Filtering with comet_ids:", self.comet_ids)
+                print("Comet ID dtype:", data['Comet ID'].dtype)
+                print("Comet ID type:", type(self.comet_ids[0]))
+                print("Filtering with comet_ids:", self.comet_ids)
+                data['Comet ID'] = data['Comet ID'].astype(str).str.strip()  # Strip whitespace
+                self.comet_ids = [str(comet_id).strip() for comet_id in self.comet_ids]
+                data = data[data['Comet ID'].isin(self.comet_ids)]
+
+            if data.empty:
+                print("Warning: Filtered data is empty.")
             return data
+
         except Exception as e:
-            raise ValueError(f"Error loading data file: {e}")
+          raise ValueError(f"Error loading data file: {e}")
 
     def has_column(self, column_name):
         """
@@ -48,16 +72,40 @@ class DataProcessor:
             bool: True if the column exists, False otherwise.
         """
         return column_name in self.data.columns
+    
+    def parse_custom_date(self, date_float):
+        """
+        Parse a custom date format from a float.
+
+        Args:
+            date_float (float): Date in the format YYYYMMDD.FFFF.
+
+        Returns:
+            datetime: Parsed datetime object.
+        """
+        # Split integer and fractional parts
+        date_int = int(date_float)
+        frac = date_float - date_int
+        
+        # Parse the date part
+        date_str = str(date_int)
+        date = datetime.strptime(date_str, "%Y%m%d")
+        
+        # Calculate the time part
+        time = timedelta(seconds=frac * 86400)
+        
+        # Combine date and time
+        return date + time
 
     def get_uncertainties(self):
         """
         Identify uncertainty columns ending with 'sigup' and 'sigdown'.
 
         Returns:
-            tuple: Two lists containing columns for 'sigup' and 'sigdown'.
+            tuple: Two lists containing columns for 'sigup' and 'sigdn'.
         """
         sigup_columns = [col for col in self.data.columns if col.endswith("sigup")]
-        sigdown_columns = [col for col in self.data.columns if col.endswith("sigdown")]
+        sigdown_columns = [col for col in self.data.columns if col.endswith("sigdn")]
         return sigup_columns, sigdown_columns
 
 class GraphConfig:
@@ -86,7 +134,7 @@ class GraphConfig:
             self.legend = config.get("legend", False)
             self.dpi = config.get("dpi", 300)
             self.font_size = config.get("font_size", 12)
-            self.output_file = config.get("output_file")
+            self.output_file = config.get("output_file", "output_graph.html")
             self.output_format = config.get("output_format", "png")
             self.interactive = config.get("interactive", False)
             self.use_uncertainties = config.get("use_uncertainties", False)
@@ -94,8 +142,10 @@ class GraphConfig:
             self.column_names = self.parse_column_names(config.get("column_names", []))
             self.x_axis_title = config.get("x_axis_title", self.x_axis)
             self.y_axis_title = config.get("y_axis_title", " / ".join(self.y_axes))
-            self.style = config.get("style", "petroff10")
+            self.style = config.get("style", "classic")
             self.x_ticks = config.get("x_ticks", None)
+            self.y_ticks = config.get("y_ticks", None)
+            self.comet_ids = config.get("comet_ids", None)
             self.validate_config()
         elif args:
             self.x_axis = args.x_axis
@@ -104,12 +154,13 @@ class GraphConfig:
             self.x_max = args.x_max
             self.y_min = args.y_min
             self.y_max = args.y_max
+            self.comet_ids = args.comet_id.split(",") if args.comet_id else None
             self.colors = args.colors.split(",") if args.colors else []
             self.shapes = args.shapes.split(",") if args.shapes else []
             self.legend = args.legend
             self.dpi = args.dpi
             self.font_size = args.font_size
-            self.output_file = args.output_file
+            self.output_file = args.output_file if args.output_file else "output_graph.html"
             self.output_format = args.output_format
             self.interactive = args.interactive
             self.use_uncertainties = args.use_uncertainties
@@ -119,6 +170,7 @@ class GraphConfig:
             self.y_axis_title = args.y_axis_title if args.y_axis_title else " / ".join(self.y_axes)
             self.style = args.style if args.style else "petroff10"
             self.x_ticks = args.x_ticks
+            self.y_ticks = args.y_ticks
 
         if not self.output_file:
             raise ValueError("Output file must be specified either in the command-line arguments or in the configuration file.")
@@ -162,6 +214,7 @@ class GraphConfig:
             "x_max": self.x_max,
             "y_min": self.y_min,
             "y_max": self.y_max,
+            "comet_ids": self.comet_ids,
             "colors": self.colors,
             "shapes": self.shapes,
             "legend": self.legend,
@@ -176,7 +229,8 @@ class GraphConfig:
             "x_axis_title": self.x_axis_title,
             "y_axis_title": self.y_axis_title,
             "style": self.style,
-            "x_ticks": self.x_ticks
+            "x_ticks": self.x_ticks,
+            "y_ticks": self.y_ticks
         }
         with open(output_path, 'w') as file:
             yaml.safe_dump(config_dict, file)
@@ -248,41 +302,66 @@ class Graph:
             print(f"Processing y-axis: {y_axis}")  # Debugging statement
             y = self.data_processor.data[y_axis]
 
+            # Remove masked or missing values
+            mask = ~y.isna()
+            x_filtered = x[mask]
+            y_filtered = y[mask]
+
+            # Filter out zero values
+            mask = (y_filtered != 0) & (~y_filtered.isna())
+            x_filtered = x_filtered[mask]
+            y_filtered = y_filtered[mask]
+
             delta_t_exists = self.data_processor.has_column("delta T")
 
-            if delta_t_exists:
-                delta_t = self.data_processor.data["delta T"]
-                for idx, value in delta_t.items():
-                    shape = self.config.shapes[0] if value >= 0 else "o"
-                    color = self.config.colors[i % len(self.config.colors)]
-                    plt.scatter(
-                        x[idx], y[idx],
-                        c=color if value >= 0 else "none",
-                        edgecolors=color if value < 0 else None,
-                        marker=shape,
-                        label=self.config.column_names.get(y_axis, y_axis) if idx == 0 else ""  # Use original column name for label
-                    )
-            else:
-                color = self.config.colors[i % len(self.config.colors)]
-                shape = self.config.shapes[i % len(self.config.shapes)]
-                plt.scatter(x, y, c=color, marker=shape, label=self.config.column_names.get(y_axis, y_axis))
+            for j, comet_id in enumerate(self.data_processor.comet_ids):
+                comet_mask = self.data_processor.data['Comet ID'] == comet_id
+                x_comet = x_filtered[comet_mask]
+                y_comet = y_filtered[comet_mask]
+                color = self.config.colors[j % len(self.config.colors)]
+                shape = self.config.shapes[j % len(self.config.shapes)]
 
-            if self.config.use_uncertainties:
-                sigup_column = f"{y_axis}_sigup"
-                sigdown_column = f"{y_axis}_sigdown"
-                if self.data_processor.has_column(sigup_column) and self.data_processor.has_column(sigdown_column):
-                    yerr = [
-                        self.data_processor.data[sigdown_column],
-                        self.data_processor.data[sigup_column]
-                    ]
-                    plt.errorbar(x, y, yerr=yerr, fmt="none", ecolor=color)
+                # Plot uncertainties
+                if self.config.use_uncertainties:
+                    sigup_column = f"{y_axis}sigup"
+                    sigdown_column = f"{y_axis}sigdn"
+                    if self.data_processor.has_column(sigup_column) and self.data_processor.has_column(sigdown_column):
+                        yerr = [
+                            self.data_processor.data[sigdown_column][comet_mask].astype(float),
+                            self.data_processor.data[sigup_column][comet_mask].astype(float)
+                        ]
+                        plt.errorbar(x_comet, y_comet, yerr=yerr, fmt="none", ecolor=color)
+
+                # Plot data points
+                if delta_t_exists:
+                    delta_t = self.data_processor.data["delta T"]
+                    for idx in range(len(x_comet)):
+                        value = delta_t[comet_mask].iloc[idx]
+                        shape = shape if value >= 0 else "o"
+                        plt.scatter(
+                            x_comet.iloc[idx], y_comet.iloc[idx],
+                            c=color if value >= 0 else "none",
+                            edgecolors=color if value < 0 else None,
+                            marker=shape,
+                            label=comet_id if idx == 0 else ""
+                        )
+                else:
+                    plt.scatter(x_comet, y_comet, c=color, marker=shape, label=comet_id)
 
         plt.xlabel(self.config.x_axis_title)
         plt.ylabel(self.config.y_axis_title)
-        if (self.config.legend):
+        if self.config.legend:
             plt.legend()
-        if (self.config.x_ticks):
+        if self.config.x_ticks:
             plt.xticks(ticks=range(int(self.config.x_min), int(self.config.x_max) + 1, int((self.config.x_max - self.config.x_min) / self.config.x_ticks)))
+        if self.config.y_ticks:
+            y_step = (self.config.y_max - self.config.y_min) / self.config.y_ticks
+            if abs(y_step) < 1e-6:
+                raise ValueError("y_step is too small. Adjust y_max, y_min, or y_ticks.")
+            elif y_step < 0:
+                y_step = -y_step
+            y_step = round(y_step, 6)
+            plt.yticks(ticks=np.arange(self.config.y_min, self.config.y_max + y_step, y_step))
         plt.savefig(self.config.output_file, format=self.config.output_format)
         plt.close()
 
@@ -313,6 +392,10 @@ class Graph:
             y_axis = y_axis.strip()  # Ensure no leading/trailing spaces
             y = self.data_processor.data[y_axis]
 
+            # Handle missing or invalid values
+            x = x.dropna()
+            y = y.dropna()
+
             if delta_t_exists:
                 delta_t = self.data_processor.data["delta T"]
                 for idx, value in delta_t.items():
@@ -340,8 +423,8 @@ class Graph:
                 )
 
             if self.config.use_uncertainties:
-                sigup_column = f"{y_axis}_sigup"
-                sigdown_column = f"{y_axis}_sigdown"
+                sigup_column = f"{y_axis}sigup"
+                sigdown_column = f"{y_axis}sigdn"
                 if self.data_processor.has_column(sigup_column) and self.data_processor.has_column(sigdown_column):
                     fig.add_trace(
                         go.Scatter(
@@ -392,8 +475,9 @@ if __name__ == "__main__":
     parser.add_argument("--output-format", default="png", help="Output file format (default: 'png')")
     parser.add_argument("--interactive", action="store_true", help="Generate an interactive graph")
     parser.add_argument("--use-uncertainties", action="store_true", help="Include uncertainties in the graph")
-    parser.add_argument("--style", default="petroff10", help="Style for the graph (default: 'petroff10')")
+    parser.add_argument("--style", default="classic", help="Style for the graph (default: 'petroff10')")
     parser.add_argument("--x-ticks", type=int, help="Number of tick marks on the x-axis")
+    parser.add_argument("--y-ticks", type=int, help="Number of tick marks on the y-axis")
     parser.add_argument(
         "--column-names",
         nargs="+",
@@ -403,6 +487,7 @@ if __name__ == "__main__":
     parser.add_argument("--export-config", help="Path to save the configuration as a YAML file")
     parser.add_argument("--x-axis-title", help="Title for the x-axis")
     parser.add_argument("--y-axis-title", help="Title for the y-axis")
+    parser.add_argument("--comet-id", help="Comma-separated list of comet IDs to filter the data")
 
     args = parser.parse_args()
 
@@ -417,7 +502,8 @@ if __name__ == "__main__":
     if not args.file and not args.import_config:
         raise ValueError("Input file must be specified when not exporting configuration.")
     
-    data_processor = DataProcessor(args.file, config.delimiter)
+    comet_ids = args.comet_id.split(",") if args.comet_id else None
+    data_processor = DataProcessor(args.file, config.delimiter, comet_ids)
     
     # Debugging: Print column names
     print("Data columns:", data_processor.data.columns)
